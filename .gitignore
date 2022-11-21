@@ -124,4 +124,6 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
-.idea
+.idea/
+model/
+out/
