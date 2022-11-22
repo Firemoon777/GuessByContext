@@ -21,7 +21,7 @@ app.add_middleware(
 @app.get("/game")
 def read_root():
     games = [name.replace(".txt", "") for name in os.listdir("out")]
-    games.sort()
+    games.sort(reverse=True)
     return games
 
 
@@ -39,10 +39,12 @@ def guess_item(r: GuessRequest):
     if game_path.exists() is False:
         return {"error": "no game found"}
 
-    word = f"{r.word}\n"
-    with game_path.open("r") as f:
+    r.word = r.word.lower()
+    print(r.word)
+
+    with game_path.open("r", encoding="utf-8") as f:
         for i, line in enumerate(f):
-            if line == word:
+            if line[:-1] == r.word:
                 return {
                     "word": r.word,
                     "distance": i
