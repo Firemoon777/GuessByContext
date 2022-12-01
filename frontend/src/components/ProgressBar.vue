@@ -39,7 +39,7 @@ export default {
       if(this.strip) {
         return "panel-border"
       }
-      if(this.dup && this.last.lemma === this.payload.lemma) {
+      if(this.last.lemma === this.payload.lemma) {
         return "panel-border"
       }
       return "panel-no-border"

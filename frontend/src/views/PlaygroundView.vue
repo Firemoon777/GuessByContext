@@ -1,12 +1,22 @@
 <template>
   <div>
-    <div class="stats-panel">
-      <span class="label">Игра:</span>
-      <span>{{this.game_id}}</span>&nbsp;&nbsp;
-      <span class="label">Попыток:</span>
-      <span>{{this.attempt}}</span>&nbsp;&nbsp;
-      <span class="label" v-if="hint">Подсказок:</span>
-      <span v-if="hint">{{this.hint}}</span>
+    <div class="row stats-panel">
+      <div class="d-flex align-bottom col-5">
+        <span class="label">Игра:</span>
+        <span>{{this.game_id}}</span>&nbsp;&nbsp;
+      </div>
+      <div class="d-flex col-2">
+        <span class="label">Всего:</span>
+        <span>{{this.attempt}}</span>&nbsp;&nbsp;
+      </div>
+      <div class="d-flex col-3">
+        <span class="label" v-if="hint">Подсказок:</span>
+        <span v-if="hint">{{this.hint}}</span>
+      </div>
+      <div class="d-flex col-2 justify-content-end">
+        <img class="img-hint" src="tip.png"  :disabled="this.loading" v-on:click="tip">
+      </div>
+
     </div>
 
     <input class="form-control form-control-lg" type="text" placeholder="Введите слово" aria-label=".form-control-lg example" v-on:keyup.enter="guess" v-model="text">
@@ -28,6 +38,14 @@
 <!--          v-if="this.loading"-->
 <!--      ></div>-->
       <ProgressBar :payload="this.lastPayload" v-if="lastWordCorrect" :strip="true"/>
+
+      <div class="alert alert-dark" role="alert" v-if="this.words.length === 0 && !this.id">
+        <span class="title">Как играть?</span><br><br>
+        <p>Угадайте загаданное слово. У вас бесконечное количество попыток.</p>
+        <p>Слова отсортированы искуственным интеллектом по смыслу в порядке убывания.</p>
+        <p>После отправки слова отобразится его позиция в списке. Загаданное слово имеет номер 0.</p>
+        <p>Перед тем как попасть сюда, искуственный интеллект работал над миллионами текстов. Он использует полученный опыт и понимание контекста для определения смысловой близости слов.</p>
+      </div>
     </div>
 
     <div class="col mt-4">
@@ -47,7 +65,7 @@ export default {
     return {
       game_id: "0",
       text: "",
-      attempt: 0,
+      attempt: 1,
       words: [],
       lastPayload: {},
       dup: false,
@@ -120,6 +138,52 @@ export default {
       })
       this.text = ""
     },
+    tip: function () {
+      this.dup = false;
+      this.loading = true;
+      let self = this;
+
+      let min_distance = 50_000;
+      for(let i in this.words) {
+        if(this.words[i].distance < min_distance) min_distance = this.words[i].distance;
+      }
+      min_distance = ~~(min_distance / 2);
+      if(min_distance < 1) min_distance = 1;
+
+      let found = true;
+      while(found) {
+        found = false;
+        for(let i in this.words) {
+          console.log("" + this.words[i].distance + " === " + min_distance + "(" + this.words[i].lemma + ")")
+          if(this.words[i].distance === min_distance) {
+            found = true;
+            min_distance += 1;
+            break;
+          }
+        }
+      }
+
+      let data = {
+        game_id: this.game_id,
+        distance: min_distance
+      };
+      axios.post("/tip", data).then(function (response) {
+        self.lastPayload = response.data
+        if ("error" in response.data) {
+          return
+        }
+        if(response.data.distance === -1) {
+          return;
+        }
+
+        self.words.push(response.data)
+        if (!self.solved) self.hint++;
+
+        self.saveState()
+      }).finally(function () {
+        self.loading = false;
+      })
+    },
     loadState: function() {
       console.log("loading " + this.game_id)
       if(!localStorage.games) return;
@@ -168,6 +232,7 @@ export default {
   text-transform: uppercase;
   margin-right: 6px;
   font-weight: 700;
+  margin-top: 6px;
 }
 
 span {
@@ -189,5 +254,19 @@ input {
   background-color: #cccccc;
   border: 5px solid #000000;
   height: 47px;
+}
+
+p {
+  font-weight: 550;
+}
+
+.help-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 19px;
+}
+
+.img-hint {
+  width: 27px;
 }
 </style>
