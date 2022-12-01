@@ -59,6 +59,7 @@ export default {
 span {
   vertical-align: middle;
   padding-top: 0px;
+  text-transform: lowercase;
   /*padding-left: 7px;*/
   /*padding-right: 7px;*/
 }

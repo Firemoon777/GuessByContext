@@ -1,11 +1,12 @@
 @font-face {
   font-family: BalkaraFree;
-  src: url("BalkaraFreeCondensed-npoekmu_me.ttf");
+  src: url("Nunito-Regular.ttf");
 }
 
 html * {
   font-family: BalkaraFree !important;
   font-size: 18px;
+  font-weight: 700;
 }
 
 :root {

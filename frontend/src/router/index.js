@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import PlaygroundView from "../views/PlaygroundView.vue";
+import ListView from "../views/ListView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,6 +16,11 @@ const router = createRouter({
       name: 'home',
       component: PlaygroundView,
     },
+    {
+      path: '/list',
+      name: 'list',
+      component: ListView,
+    }
     // {
     //   path: '/about',
     //   name: 'about',

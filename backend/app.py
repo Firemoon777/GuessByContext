@@ -42,8 +42,7 @@ def guess_item(r: GuessRequest):
     if game_path.exists() is False:
         return {"error": "no game found"}
 
-    print(f"before {r.word}")
-    r.word = r.word.lower()
+    r.word = r.word.lower().strip()
     lemma = m.lemmatize(r.word)[0]
     print(f"{r.word} --> {lemma}")
 

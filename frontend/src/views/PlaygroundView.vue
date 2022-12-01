@@ -5,23 +5,28 @@
       <span>{{this.game_id}}</span>&nbsp;&nbsp;
       <span class="label">Попыток:</span>
       <span>{{this.attempt}}</span>&nbsp;&nbsp;
-      <span class="label">Подсказок:</span>
-      <span></span>
+      <span class="label" v-if="hint">Подсказок:</span>
+      <span v-if="hint">{{this.hint}}</span>
     </div>
 
     <input class="form-control form-control-lg" type="text" placeholder="Введите слово" aria-label=".form-control-lg example" v-on:keyup.enter="guess" v-model="text">
 
     <div class="message-panel">
+      <div class="alert alert-primary" role="alert" v-if="solved">
+        <h1>Поздравлямба!</h1>
+        Вы угадали слово за {{this.attempt}} попыток и {{this.hint}} подсказок.
+      </div>
       <div class="alert alert-primary" role="alert" v-if="lastWordNotFound">
         Кажется, слова {{lastPayload.word}} нет в словаре или оно слишком далеко!
       </div>
-      <div class="alert alert-primary" role="alert" v-if="solved">
-        <h1>Поздравлямба!</h1>
-        Вы угадали слово за {{this.attempt}} попыток.
-      </div>
       <div class="alert alert-danger" v-if="dup">
-        Слово {{this.lastPayload.lemma}} уже отгадывалось!
+        Слово {{this.lastPayload.lemma}} уже отгадано!
       </div>
+<!--      <div-->
+<!--          class="progress progress-bar progress-bar-striped progress-bar-animated loading"-->
+<!--          role="progressbar"-->
+<!--          v-if="this.loading"-->
+<!--      ></div>-->
       <ProgressBar :payload="this.lastPayload" v-if="lastWordCorrect" :strip="true"/>
     </div>
 
@@ -46,7 +51,9 @@ export default {
       words: [],
       lastPayload: {},
       dup: false,
-      solved: false
+      solved: false,
+      hint: 0,
+      loading: false
     }
   },
   computed: {
@@ -76,6 +83,7 @@ export default {
   methods: {
     guess: function () {
       this.dup = false;
+      this.loading = true;
       let self = this;
       let data = {
         game_id: this.game_id,
@@ -89,9 +97,6 @@ export default {
         if(response.data.distance === -1) {
           return;
         }
-        if(response.data.distance === 0) {
-          self.solved = true;
-        }
         for(let i in self.words) {
           data = self.words[i]
           if(data.lemma === response.data.lemma) {
@@ -103,12 +108,20 @@ export default {
           self.words.push(response.data)
           if (!self.solved) self.attempt++;
         }
+        if(response.data.distance === 0) {
+          self.solved = true;
+        }
 
         self.saveState()
+      }).finally(function () {
+        self.loading = false;
+        console.warn(self.$refs.input)
+        self.$refs.input.focus()
       })
       this.text = ""
     },
     loadState: function() {
+      console.log("loading " + this.game_id)
       if(!localStorage.games) return;
 
       let games_data = JSON.parse(localStorage.games)
@@ -137,14 +150,14 @@ export default {
     if (!this.id) {
       let self = this
       axios.get("/game").then(function (response) {
-        console.log(response.data[0])
+        localStorage.list = JSON.stringify(response.data)
         self.game_id = response.data[0]
+        self.loadState()
       })
     } else {
       this.game_id = this.id
+      this.loadState()
     }
-
-    this.loadState()
   }
 }
 </script>
@@ -154,12 +167,12 @@ export default {
   font-size: 12px;
   text-transform: uppercase;
   margin-right: 6px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 span {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .stats-panel {
@@ -169,5 +182,12 @@ span {
 input {
   margin-top: 10px;
   margin-bottom: 10px;
+}
+
+.loading {
+  width: 100%;
+  background-color: #cccccc;
+  border: 5px solid #000000;
+  height: 47px;
 }
 </style>

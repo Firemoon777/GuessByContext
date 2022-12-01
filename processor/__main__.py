@@ -27,6 +27,9 @@ model_dir = Path(args.model)
 out_file = Path(args.out)
 word = str(args.word)
 
+out_file = Path("out/2022-12-01.txt")
+word = "снег"
+
 # Create directories if necessary
 model_dir.mkdir(parents=True, exist_ok=True)
 out_dir = out_file.parent
