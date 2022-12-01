@@ -1,18 +1,28 @@
 <template>
   <div>
-    <div class="row">
-      <h1>Игра: {{this.game_id}} Попыток: {{this.attempt}}</h1>
+    <div class="stats-panel">
+      <span class="label">Игра:</span>
+      <span>{{this.game_id}}</span>&nbsp;&nbsp;
+      <span class="label">Попыток:</span>
+      <span>{{this.attempt}}</span>&nbsp;&nbsp;
+      <span class="label">Подсказок:</span>
+      <span></span>
     </div>
+
     <input class="form-control form-control-lg" type="text" placeholder="Введите слово" aria-label=".form-control-lg example" v-on:keyup.enter="guess" v-model="text">
-    <div class="alert alert-primary mt-3" role="alert" v-if="lastWordNotFound">
-      Кажется, слова {{lastPayload.word}} нет в словаре!
+
+    <div class="message-panel">
+      <div class="alert alert-primary" role="alert" v-if="lastWordNotFound">
+        Кажется, слова {{lastPayload.word}} нет в словаре!
+      </div>
+      <div class="alert alert-primary" role="alert" v-if="lastWordGuessed">
+        <h1>Поздравлямба!</h1>
+        Вы угадали слово за {{this.attempt}} попыток.
+      </div>
+      <ProgressBar :payload="this.lastPayload" v-if="lastWordCorrect" :strip="true"/>
     </div>
-    <div class="alert alert-primary mt-3" role="alert" v-if="lastWordGuessed">
-      <h1>Поздравлямба!</h1>
-      Вы угадали слово за {{this.attempt}} попыток.
-    </div>
-    <ProgressBar :payload="this.lastPayload" v-if="lastWordCorrect" :strip="true"/>
-    <div class="col mt-5">
+
+    <div class="col mt-4">
       <ProgressBar v-for="payload in this.sortedWords" :payload="payload"/>
     </div>
   </div>
@@ -94,5 +104,24 @@ export default {
 </script>
 
 <style scoped>
+.label {
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-right: 6px;
+  font-weight: 500;
+}
 
+span {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stats-panel {
+  padding: 10px 10px 0;
+}
+
+input {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
 </style>
