@@ -3,7 +3,7 @@
     <div class="progress-bar" :class="color" role="progressbar" :style="this.width"></div>
     <div class="row position-absolute w-100 h-100">
       <div class="col-6 justify-content-start d-flex">
-        <span>{{payload.word}}</span>
+        <span>{{payload.lemma}}</span>
       </div>
       <div class="col-6 justify-content-end d-flex">
         <span>{{payload.distance}}</span>
@@ -15,7 +15,7 @@
 <script>
 export default {
   name: "ProgressBar",
-  props: ["payload", "strip"],
+  props: ["payload", "strip", "dup", "last"],
   computed: {
     color: function () {
       if(this.payload.distance < 300) return "progress-bar-green"
@@ -37,6 +37,9 @@ export default {
     },
     bordered: function() {
       if(this.strip) {
+        return "panel-border"
+      }
+      if(this.dup && this.last.lemma === this.payload.lemma) {
         return "panel-border"
       }
       return "panel-no-border"

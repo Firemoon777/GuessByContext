@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from typing import Union
 
+from pymystem3 import Mystem
 from fastapi import FastAPI
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
@@ -16,6 +17,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+m = Mystem()
 
 
 @app.get("/game")
@@ -39,14 +42,17 @@ def guess_item(r: GuessRequest):
     if game_path.exists() is False:
         return {"error": "no game found"}
 
+    print(f"before {r.word}")
     r.word = r.word.lower()
-    print(r.word)
+    lemma = m.lemmatize(r.word)[0]
+    print(f"{r.word} --> {lemma}")
 
     with game_path.open("r", encoding="utf-8") as f:
         for i, line in enumerate(f):
-            if line[:-1] == r.word:
+            if line[:-1] == lemma:
                 return {
                     "word": r.word,
+                    "lemma": lemma,
                     "distance": i
                 }
     return {

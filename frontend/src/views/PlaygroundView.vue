@@ -13,17 +13,20 @@
 
     <div class="message-panel">
       <div class="alert alert-primary" role="alert" v-if="lastWordNotFound">
-        Кажется, слова {{lastPayload.word}} нет в словаре!
+        Кажется, слова {{lastPayload.word}} нет в словаре или оно слишком далеко!
       </div>
       <div class="alert alert-primary" role="alert" v-if="lastWordGuessed">
         <h1>Поздравлямба!</h1>
         Вы угадали слово за {{this.attempt}} попыток.
       </div>
+      <div class="alert alert-danger" v-if="dup">
+        Слово {{this.lastPayload.lemma}} уже отгадывалось!
+      </div>
       <ProgressBar :payload="this.lastPayload" v-if="lastWordCorrect" :strip="true"/>
     </div>
 
     <div class="col mt-4">
-      <ProgressBar v-for="payload in this.sortedWords" :payload="payload"/>
+      <ProgressBar v-for="payload in this.sortedWords" :payload="payload" :dup="dup" :last="lastPayload"/>
     </div>
   </div>
 </template>
@@ -41,7 +44,8 @@ export default {
       text: "",
       attempt: 0,
       words: [],
-      lastPayload: {}
+      lastPayload: {},
+      dup: false
     }
   },
   computed: {
@@ -55,7 +59,7 @@ export default {
     lastWordCorrect: function () {
       if ("error" in this.lastPayload) return false;
       if (!("distance" in this.lastPayload)) return false;
-      return this.lastPayload.distance !== -1;
+      return this.lastPayload.distance !== -1 && !this.dup;
     },
     lastWordNotFound: function () {
       if("error" in this.lastPayload) return false;
@@ -70,7 +74,7 @@ export default {
   },
   methods: {
     guess: function () {
-      this.attempt++;
+      this.dup = false;
       let self = this;
       let data = {
         game_id: this.game_id,
@@ -84,7 +88,17 @@ export default {
         if(response.data.distance === -1) {
           return;
         }
-        self.words.push(response.data)
+        for(let i in self.words) {
+          data = self.words[i]
+          if(data.lemma === response.data.lemma) {
+            self.dup = true;
+            break
+          }
+        }
+        if(!self.dup) {
+          self.words.push(response.data)
+          self.attempt++;
+        }
       })
       this.text = ""
     }

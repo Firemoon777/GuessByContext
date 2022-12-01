@@ -4,6 +4,7 @@ logging.basicConfig(level=logging.INFO)
 
 import argparse
 import requests
+import pymystem3
 
 from zipfile import ZipFile
 from tqdm import tqdm
@@ -51,10 +52,19 @@ if noun_only_model_txt.exists() is False:
 
     logging.info("Extracting nouns...")
     nouns = []
-    with original_model_txt.open("r") as f:
-        for line in f:
-            if "_NOUN" in line and "::" not in line:
-                nouns.append(line.replace("_NOUN", ""))
+    # mystem = pymystem3.Mystem()
+    with original_model_txt.open("r", encoding="utf-8") as f:
+        for line in tqdm(f, total=185925):
+            if "_NOUN" not in line or "::" in line:
+                continue
+
+            # word = line.split('_')[0].strip()
+            # lemma = mystem.lemmatize(word)[0]
+            #
+            # if word != lemma:
+            #     print(f"{word} === {lemma}")
+            # else:
+            nouns.append(line.replace("_NOUN", ""))
 
     with noun_only_model_txt.open("w") as f:
         f.write(f"{len(nouns)} 300\n")
