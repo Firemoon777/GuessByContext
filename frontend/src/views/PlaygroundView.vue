@@ -15,7 +15,7 @@
       <div class="alert alert-primary" role="alert" v-if="lastWordNotFound">
         Кажется, слова {{lastPayload.word}} нет в словаре или оно слишком далеко!
       </div>
-      <div class="alert alert-primary" role="alert" v-if="lastWordGuessed">
+      <div class="alert alert-primary" role="alert" v-if="solved">
         <h1>Поздравлямба!</h1>
         Вы угадали слово за {{this.attempt}} попыток.
       </div>
@@ -45,7 +45,8 @@ export default {
       attempt: 0,
       words: [],
       lastPayload: {},
-      dup: false
+      dup: false,
+      solved: false
     }
   },
   computed: {
@@ -88,6 +89,9 @@ export default {
         if(response.data.distance === -1) {
           return;
         }
+        if(response.data.distance === 0) {
+          self.solved = true;
+        }
         for(let i in self.words) {
           data = self.words[i]
           if(data.lemma === response.data.lemma) {
@@ -97,10 +101,36 @@ export default {
         }
         if(!self.dup) {
           self.words.push(response.data)
-          self.attempt++;
+          if (!self.solved) self.attempt++;
         }
+
+        self.saveState()
       })
       this.text = ""
+    },
+    loadState: function() {
+      if(!localStorage.games) return;
+
+      let games_data = JSON.parse(localStorage.games)
+      if(!(this.game_id in games_data)) return;
+
+      this.attempt = games_data[this.game_id].attempt
+      this.words = games_data[this.game_id].words
+      this.solved = games_data[this.game_id].solved
+    },
+    saveState: function () {
+      if(!localStorage.games) {
+        localStorage.games = "{}"
+      }
+
+      let games_data = JSON.parse(localStorage.games)
+      games_data[this.game_id] = {
+        'attempt': this.attempt,
+        'words': this.words,
+        'solved': this.solved
+      }
+      console.warn(typeof(games_data))
+      localStorage.setItem("games", JSON.stringify(games_data))
     }
   },
   created() {
@@ -113,6 +143,8 @@ export default {
     } else {
       this.game_id = this.id
     }
+
+    this.loadState()
   }
 }
 </script>
