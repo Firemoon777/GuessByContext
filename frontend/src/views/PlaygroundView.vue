@@ -65,7 +65,7 @@ export default {
     return {
       game_id: "0",
       text: "",
-      attempt: 1,
+      attempt: 0,
       words: [],
       lastPayload: {},
       dup: false,
