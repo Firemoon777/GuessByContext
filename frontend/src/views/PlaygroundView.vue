@@ -1,22 +1,24 @@
 <template>
   <div>
     <div class="row stats-panel">
-      <div class="d-flex align-bottom col-5">
-        <span class="label">Игра:</span>
+      <div class="d-flex align-bottom col-6">
+<!--        <span class="label">Игра:</span>-->
         <span>{{this.game_id}}</span>&nbsp;&nbsp;
       </div>
-      <div class="d-flex col-2">
-        <span class="label">Всего:</span>
+      <div class="d-flex col-5">
+        <span class="label">Попыток:</span>
         <span>{{this.attempt}}</span>&nbsp;&nbsp;
       </div>
-      <div class="d-flex col-3">
-        <span class="label" v-if="hint">Подсказок:</span>
-        <span v-if="hint">{{this.hint}}</span>
+      <div class="d-flex col-1 justify-content-end">
+        <img class="img-hint" src="/tip.png" :disabled="this.loading" v-on:click="tip">
       </div>
-      <div class="d-flex col-2 justify-content-end">
-        <img class="img-hint" src="tip.png" :disabled="this.loading" v-on:click="tip">
-      </div>
+    </div>
 
+    <div class="row stats-panel">
+      <div class="d-flex col-3" v-if="hint">
+        <span class="label">Подсказок:</span>
+        <span>{{this.hint}}</span>
+      </div>
     </div>
 
     <input class="form-control form-control-lg" type="text" placeholder="Введите слово" aria-label=".form-control-lg example" v-on:keyup.enter="guess" v-model="text" :disabled="this.loading">
@@ -26,7 +28,7 @@
         <h1>Поздравлямба!</h1>
         Вы угадали слово за {{this.attempt}} попыток и {{this.hint}} подсказок.
 
-        <button type="button" class="btn mt-3 btn-light w-100">Ближайшие слова</button>
+        <router-link :to="closeWordsLink"><button type="button" class="btn mt-3 btn-light w-100">Ближайшие слова</button></router-link>
       </div>
       <div class="alert alert-primary" role="alert" v-if="lastWordNotFound">
         Кажется, слова {{lastPayload.word}} нет в словаре или оно слишком далеко!
@@ -47,6 +49,7 @@
         <p>Слова отсортированы искуственным интеллектом по смыслу в порядке убывания.</p>
         <p>После отправки слова отобразится его позиция в списке. Загаданное слово имеет номер 0.</p>
         <p>Перед тем как попасть сюда, искуственный интеллект работал над миллионами текстов. Он использует полученный опыт и понимание контекста для определения смысловой близости слов.</p>
+        <p>Сделано под впечатлением от <a href="https://contexto.me/">contexto.me</a> </p>
       </div>
     </div>
 
@@ -84,6 +87,9 @@ export default {
           if(a.distance > b.distance) return 1;
           return 0
       })
+    },
+    closeWordsLink: function () {
+      return '/' + this.game_id + '/words'
     },
     lastWordCorrect: function () {
       if ("error" in this.lastPayload) return false;

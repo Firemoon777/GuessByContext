@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import PlaygroundView from "../views/PlaygroundView.vue";
 import ListView from "../views/ListView.vue";
+import CloseWordsView from "../views/CloseWordsView.vue";
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -20,15 +21,13 @@ const router = createRouter({
       path: '/list',
       name: 'list',
       component: ListView,
+    },
+    {
+      path: '/:id/words',
+      name: 'close_words',
+      component: CloseWordsView,
+      props: true
     }
-    // {
-    //   path: '/about',
-    //   name: 'about',
-    //   // route level code-splitting
-    //   // this generates a separate chunk (About.[hash].js) for this route
-    //   // which is lazy-loaded when the route is visited.
-    //   component: () => import('../views/AboutView.vue')
-    // }
   ]
 })
 

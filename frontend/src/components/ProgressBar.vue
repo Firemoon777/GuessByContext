@@ -24,12 +24,12 @@ export default {
     },
     width: function () {
       let result;
-      if(this.payload.distance < 300) {
-        result = (300 - this.payload.distance) / 300 * 100 + 66;
-      } else if(this.payload.distance < 1500) {
-        result = (1500 - this.payload.distance) / 1500 / 3 * 100 + 33;
+      if(this.payload.distance <= 300) {
+        result = (300 - this.payload.distance) / 300 / 3 * 100 + 67;
+      } else if(this.payload.distance <= 1500) {
+        result = (1500 - this.payload.distance) / 1200 / 3 * 100 + 34;
       } else {
-        result = (50000 - this.payload.distance) / 50000 / 3 * 100;
+        result = (50000 - this.payload.distance) / 49500 / 3 * 100;
       }
       return {
         width: result.toString() + "%"
@@ -39,6 +39,7 @@ export default {
       if(this.strip) {
         return "panel-border"
       }
+      if(!this.last) return "panel-no-border"
       if(this.last.lemma === this.payload.lemma) {
         return "panel-border"
       }
