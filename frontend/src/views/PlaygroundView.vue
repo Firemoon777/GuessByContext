@@ -14,17 +14,19 @@
         <span v-if="hint">{{this.hint}}</span>
       </div>
       <div class="d-flex col-2 justify-content-end">
-        <img class="img-hint" src="tip.png"  :disabled="this.loading" v-on:click="tip">
+        <img class="img-hint" src="tip.png" :disabled="this.loading" v-on:click="tip">
       </div>
 
     </div>
 
-    <input class="form-control form-control-lg" type="text" placeholder="Введите слово" aria-label=".form-control-lg example" v-on:keyup.enter="guess" v-model="text">
+    <input class="form-control form-control-lg" type="text" placeholder="Введите слово" aria-label=".form-control-lg example" v-on:keyup.enter="guess" v-model="text" :disabled="this.loading">
 
     <div class="message-panel">
       <div class="alert alert-primary" role="alert" v-if="solved">
         <h1>Поздравлямба!</h1>
         Вы угадали слово за {{this.attempt}} попыток и {{this.hint}} подсказок.
+
+        <button type="button" class="btn mt-3 btn-light w-100">Ближайшие слова</button>
       </div>
       <div class="alert alert-primary" role="alert" v-if="lastWordNotFound">
         Кажется, слова {{lastPayload.word}} нет в словаре или оно слишком далеко!
@@ -71,7 +73,8 @@ export default {
       dup: false,
       solved: false,
       hint: 0,
-      loading: false
+      loading: false,
+      dict: {}
     }
   },
   computed: {
@@ -99,48 +102,43 @@ export default {
     }
   },
   methods: {
+    leading_zero: function (data) {
+      if(String(data).length === 1) return "0" + data
+      return data
+    },
     guess: function () {
-      this.dup = false;
-      this.loading = true;
-      let self = this;
-      let data = {
-        game_id: this.game_id,
-        word: this.text
-      };
-      axios.post("/guess", data).then(function (response) {
-        self.lastPayload = response.data
-        if ("error" in response.data) {
-          return
-        }
-        if(response.data.distance === -1) {
-          return;
-        }
-        for(let i in self.words) {
-          data = self.words[i]
-          if(data.lemma === response.data.lemma) {
-            self.dup = true;
-            break
-          }
-        }
-        if(!self.dup) {
-          self.words.push(response.data)
-          if (!self.solved) self.attempt++;
-        }
-        if(response.data.distance === 0) {
-          self.solved = true;
-        }
+      let clean_word = this.text.trim().toLowerCase().replace("ё", "е")
 
-        self.saveState()
-      }).finally(function () {
-        self.loading = false;
-        console.warn(self.$refs.input)
-        self.$refs.input.focus()
-      })
+      let result = this.dict[clean_word]
+      if(result === undefined) result = -1
+
+      this.lastPayload = {
+        "word": this.text,
+        "lemma": clean_word,
+        "distance": result
+      }
+
+      this.dup = false;
+      for(let i in this.words) {
+        let data = this.words[i]
+        if(data.lemma === clean_word) {
+          this.dup = true;
+        }
+      }
+
+      if(!this.dup) {
+        if(this.lastPayload.distance !== -1) this.words.push(this.lastPayload)
+        if(!this.solved) this.attempt++;
+      }
+
+      if (this.lastPayload.distance === 0) {
+        this.solved = true;
+      }
+      this.saveState()
       this.text = ""
     },
     tip: function () {
       this.dup = false;
-      this.loading = true;
       let self = this;
 
       let min_distance = 50_000;
@@ -154,7 +152,6 @@ export default {
       while(found) {
         found = false;
         for(let i in this.words) {
-          console.log("" + this.words[i].distance + " === " + min_distance + "(" + this.words[i].lemma + ")")
           if(this.words[i].distance === min_distance) {
             found = true;
             min_distance += 1;
@@ -163,37 +160,38 @@ export default {
         }
       }
 
-      let data = {
-        game_id: this.game_id,
-        distance: min_distance
-      };
-      axios.post("/tip", data).then(function (response) {
-        self.lastPayload = response.data
-        if ("error" in response.data) {
-          return
-        }
-        if(response.data.distance === -1) {
-          return;
-        }
+      if (!self.solved) this.hint++;
 
-        self.words.push(response.data)
-        if (!self.solved) self.hint++;
+      for(let i in self.dict) {
+        if(self.dict[i] === min_distance) {
+          this.lastPayload = {
+            "word": i,
+            "lemma": i,
+            "distance": min_distance
+          }
+          break
+        }
+      }
 
-        self.saveState()
-      }).finally(function () {
-        self.loading = false;
-      })
+      this.words.push(this.lastPayload)
+      self.saveState()
     },
     loadState: function() {
       console.log("loading " + this.game_id)
+
+      let self = this;
+      axios.get("/game/" + this.game_id + ".json").then(function (response) {
+        self.dict = response.data
+        self.loading = false
+      })
       if(!localStorage.games) return;
 
       let games_data = JSON.parse(localStorage.games)
-      if(!(this.game_id in games_data)) return;
+      if(!(self.game_id in games_data)) return;
 
-      this.attempt = games_data[this.game_id].attempt
-      this.words = games_data[this.game_id].words
-      this.solved = games_data[this.game_id].solved
+      self.attempt = games_data[self.game_id].attempt
+      self.words = games_data[self.game_id].words
+      self.solved = games_data[self.game_id].solved
     },
     saveState: function () {
       if(!localStorage.games) {
@@ -206,22 +204,21 @@ export default {
         'words': this.words,
         'solved': this.solved
       }
-      console.warn(typeof(games_data))
       localStorage.setItem("games", JSON.stringify(games_data))
     }
   },
-  created() {
+  mounted() {
+    this.loading = true;
     if (!this.id) {
-      let self = this
-      axios.get("/game").then(function (response) {
-        localStorage.list = JSON.stringify(response.data)
-        self.game_id = response.data[0]
-        self.loadState()
-      })
+      let now = new Date();
+      let year = now.getFullYear()
+      let month = this.leading_zero(now.getMonth() + 1)
+      let day = this.leading_zero(now.getDate())
+      this.game_id = "" + year + "-" + month + "-" + day;
     } else {
       this.game_id = this.id
-      this.loadState()
     }
+    this.loadState()
   }
 }
 </script>
@@ -268,5 +265,6 @@ p {
 
 .img-hint {
   width: 27px;
+  height: 27px;
 }
 </style>

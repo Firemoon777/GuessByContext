@@ -127,3 +127,4 @@ cython_debug/
 .idea/
 model/
 out/
+frontend/public/game/

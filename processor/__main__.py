@@ -1,10 +1,10 @@
+import json
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
 import argparse
 import requests
-import pymystem3
 
 from zipfile import ZipFile
 from tqdm import tqdm
@@ -26,6 +26,9 @@ args = parser.parse_args()
 model_dir = Path(args.model)
 out_file = Path(args.out)
 word = str(args.word)
+
+out_file = Path("out/2022-12-12.txt")
+word = "доброта"
 
 # Create directories if necessary
 model_dir.mkdir(parents=True, exist_ok=True)
@@ -77,7 +80,17 @@ else:
 logging.info("Loading model...")
 model = KeyedVectors.load_word2vec_format(noun_only_model_txt, binary=False)
 
+# words = {
+#     word: 0
+# }
+# for index, (similar_word, _) in enumerate(model.most_similar(positive=[word], topn=50000), 1):
+#     words[similar_word] = index
+#
+# with out_file.open("w", encoding="utf-8") as f:
+#     json.dump(words, f, ensure_ascii=False)
+
 with out_file.open("w", encoding="utf-8") as f:
     f.write(f"{word}\n")
+
     for similar_word, _ in model.most_similar(positive=[word], topn=50000):
         f.write(f"{similar_word}\n")

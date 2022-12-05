@@ -9,7 +9,7 @@ const app = createApp(App)
 import axios from "axios";
 
 // axios.defaults.baseURL = "http://127.0.0.1:8000";
-axios.defaults.baseURL = "https://vds.f1remoon.com/guess/api";
+// axios.defaults.baseURL = "https://words.f1remoon.com/";
 
 app.use(router)
 // app.use(BootstrapVue)

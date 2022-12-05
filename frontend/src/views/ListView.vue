@@ -21,36 +21,48 @@ export default {
     button_class: function (payload) {
       if(payload.solved) return 'btn-success'
       return 'btn-light'
+    },
+    leading_zero: function (data) {
+      if(String(data).length === 1) return "0" + data
+      return data
     }
   },
   computed: {
     game_list: function() {
       let result = [];
 
-      let storage = {}
-      if(localStorage.games) storage = JSON.parse(localStorage.games)
+      let now = new Date();
+      let start = new Date(2022, 10, 13);
+      let current = new Date(now);
 
-      for(let i in this.raw_list) {
-        let game_name = this.raw_list[i];
-        let game = {
-          'name': game_name,
-          'solved': storage[game_name] ? (!!storage[game_name].solved) : false
-        }
-        result.push(game)
+      let storage = null;
+      if(localStorage.games) {
+         storage = JSON.parse(localStorage.games)
       }
+
+
+      while(current > start) {
+        let year = current.getFullYear()
+        let month = this.leading_zero(current.getMonth() + 1)
+        let day = this.leading_zero(current.getDate())
+
+        let game_name = "" + year + "-" + month + "-" + day
+
+        let solved = storage && storage[game_name] ? storage[game_name].solved : false
+
+        result.push({
+          name: game_name,
+          solved: solved
+        })
+
+        current.setDate(current.getDate() - 1);
+      }
+
       return result
     }
   },
   mounted() {
-    if(!localStorage.list) return;
 
-    if(localStorage.list) this.raw_list = JSON.parse(localStorage.list)
-
-    let self = this
-    axios.get("/game").then(function (response) {
-      localStorage.list = JSON.stringify(response.data)
-      self.raw_list = response.data
-    })
   }
 }
 </script>
