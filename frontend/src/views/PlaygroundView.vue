@@ -198,6 +198,7 @@ export default {
       self.attempt = games_data[self.game_id].attempt
       self.words = games_data[self.game_id].words
       self.solved = games_data[self.game_id].solved
+      self.hint = games_data[self.game_id].hint
     },
     saveState: function () {
       if(!localStorage.games) {
@@ -208,7 +209,8 @@ export default {
       games_data[this.game_id] = {
         'attempt': this.attempt,
         'words': this.words,
-        'solved': this.solved
+        'solved': this.solved,
+        'hint': this.hint
       }
       localStorage.setItem("games", JSON.stringify(games_data))
     }

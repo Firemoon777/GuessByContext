@@ -35,7 +35,7 @@ export default {
       }
 
       let result = [];
-      for(let i = 0; i <= top; i++) {
+      for(let i = 1; i <= top; i++) {
         result.push({
           "word": top_dict[i],
           "lemma": top_dict[i],

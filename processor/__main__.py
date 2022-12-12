@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 from navec import Navec
 
@@ -20,7 +21,8 @@ parser = argparse.ArgumentParser(
     description="Create list of similar words"
 )
 
-parser.add_argument("-o", "--out", help="Path for output text file", default="out.txt")
+parser.add_argument("-o", "--out", help="Path for output dir", default=".")
+parser.add_argument("-n", "--name", help="Name for output file", default="word")
 parser.add_argument("-m", "--model", help="Path for directory with model", default=".")
 parser.add_argument("word", help="")
 
@@ -29,6 +31,7 @@ args = parser.parse_args()
 model_dir = Path(args.model)
 out_dir = Path(args.out)
 word = str(args.word)
+out_name = str(args.name)
 
 # Create directories if necessary
 model_dir.mkdir(parents=True, exist_ok=True)
@@ -103,7 +106,7 @@ def create_dictionary(word: str, out_dir: Path, filename: str):
     with out_txt_file.open("w", encoding="utf-8") as f:
         f.write(f"{word}\n")
 
-        for i, (similar_word, _) in enumerate(model.most_similar(positive=[word], topn=50000)):
+        for i, (similar_word, _) in enumerate(model.most_similar(positive=[word], topn=50000), 1):
             f.write(f"{similar_word}\n")
             words[similar_word] = i
 
@@ -111,4 +114,4 @@ def create_dictionary(word: str, out_dir: Path, filename: str):
         json.dump(words, f, ensure_ascii=False)
 
 
-create_dictionary(word, out_dir, "word")
+create_dictionary(word, out_dir, out_name)
