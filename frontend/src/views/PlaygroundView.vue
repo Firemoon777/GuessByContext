@@ -50,6 +50,7 @@
         <p>После отправки слова отобразится его позиция в списке. Загаданное слово имеет номер 0.</p>
         <p>Перед тем как попасть сюда, искуственный интеллект работал над миллионами текстов. Он использует полученный опыт и понимание контекста для определения смысловой близости слов.</p>
         <p>Сделано под впечатлением от <a href="https://contexto.me/">contexto.me</a> </p>
+        <p>Добавление новых игр пока приостановлено.</p>
       </div>
     </div>
 
@@ -133,8 +134,11 @@ export default {
       }
 
       if(!this.dup) {
-        if(this.lastPayload.distance !== -1) this.words.push(this.lastPayload)
-        if(!this.solved) this.attempt++;
+        if(this.lastPayload.distance !== -1) {
+          this.words.push(this.lastPayload)
+          if(!this.solved) this.attempt++;
+        }
+
       }
 
       if (this.lastPayload.distance === 0) {
@@ -218,7 +222,7 @@ export default {
   mounted() {
     this.loading = true;
     if (!this.id) {
-      let now = new Date();
+      let now = new Date(2023, 1, 16);
       let year = now.getFullYear()
       let month = this.leading_zero(now.getMonth() + 1)
       let day = this.leading_zero(now.getDate())

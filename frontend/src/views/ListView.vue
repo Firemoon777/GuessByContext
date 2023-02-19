@@ -31,7 +31,7 @@ export default {
     game_list: function() {
       let result = [];
 
-      let now = new Date();
+      let now = new Date(2023, 1, 16);
       let start = new Date(2022, 10, 13);
       let current = new Date(now);
 
